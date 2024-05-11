@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using UnitTestEx;
 
 namespace UnitTestEx
 {
@@ -17,7 +15,7 @@ namespace UnitTestEx
          */
         public FileStorage(int size) {
             maxSize = size;
-            availableSize += maxSize;
+            availableSize = maxSize;
         }
 
         /**
@@ -34,6 +32,11 @@ namespace UnitTestEx
          * @throws FileNameAlreadyExistsException in case of already existent filename
          */
         public bool Write(File file) {
+            if (file.GetFilename().Trim() == "")
+            {
+                //Если имя файла пустое
+                throw new NullReferenceException();
+            }
             // Проверка существования файла
             if (IsExists(file.GetFilename())) {
                 //Если файл уже есть, то кидаем ошибку
@@ -42,7 +45,7 @@ namespace UnitTestEx
 
             //Проверка того, размер файла не привышает доступный объем памяти
             if (file.GetSize() >= availableSize) {
-                return false;
+                throw new OutOfMemoryException();
             }
 
             // Добалвяем файл в лист
@@ -58,11 +61,16 @@ namespace UnitTestEx
          * @param fileName to search
          * @return result of checking
          */
+
         public bool IsExists(String fileName) {
+            if (fileName.Trim() == "")
+            {
+                throw new NullReferenceException();
+            }
             // Для каждого элемента с типом File из Листа files
             foreach (File file in files) {
                 // Проверка имени
-                if (file.GetFilename().Contains(fileName)) {
+                if (file.GetFilename() == fileName) {
                     return true;
                 }
             }
@@ -94,7 +102,7 @@ namespace UnitTestEx
         public File GetFile(String fileName) {
             if (IsExists(fileName)) {
                 foreach (File file in files) {
-                    if (file.GetFilename().Contains(fileName)) {
+                    if (file.GetFilename() == fileName) {
                         return file;
                     }
                 }
@@ -108,9 +116,10 @@ namespace UnitTestEx
          */
         public bool DeleteAllFiles()
         {
-            files.RemoveRange(0, files.Count - 1);
+            files.RemoveRange(0, files.Count);
+            availableSize = maxSize;
             return files.Count == 0;
-        }
 
+        }
     }
 }

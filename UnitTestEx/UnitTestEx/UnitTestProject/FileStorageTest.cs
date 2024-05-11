@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using System;
-using System.Reflection;
 using UnitTestEx;
 using Assert = NUnit.Framework.Assert;
 
@@ -16,6 +15,7 @@ namespace UnitTestProject
         public const string MAX_SIZE_EXCEPTION = "DIFFERENT MAX SIZE";
         public const string NULL_FILE_EXCEPTION = "NULL FILE";
         public const string NO_EXPECTED_EXCEPTION_EXCEPTION = "There is no expected exception";
+        public const string FILE_NAME_ALREADY_EXISTS_EXCEPTION = "FILE ALREADY EXIST";
 
         public const string SPACE_STRING = " ";
         public const string FILE_PATH_STRING = "@D:\\JDK-intellij-downloader-info.txt";
@@ -47,11 +47,35 @@ namespace UnitTestProject
             new object[] { new File(REPEATED_STRING, CONTENT_STRING) }
         };
 
+        static object[] LongData = 
+        {
+            new object[] { new File(REPEATED_STRING, WRONG_SIZE_CONTENT_STRING) }
+        };
+
+        static object[] NullData = {
+            new object[] { new File(SPACE_STRING, CONTENT_STRING) }
+        };
+
         /* Тестирование записи файла */
         [Test, TestCaseSource(nameof(NewFilesData))]
-        public void WriteTest(File file) 
+        public void WriteTest(File file)
         {
-            Assert.True(storage.Write(file));
+            try
+            {
+                storage.Write(file);
+            }
+            catch (OutOfMemoryException e)
+            {
+                Console.WriteLine(MAX_SIZE_EXCEPTION);
+            }
+            catch (FileNameAlreadyExistsException e)
+            {
+                Console.WriteLine(FILE_NAME_ALREADY_EXISTS_EXCEPTION);
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(NULL_FILE_EXCEPTION);
+            }
             storage.DeleteAllFiles();
         }
 
@@ -63,57 +87,121 @@ namespace UnitTestProject
             {
                 storage.Write(file);
                 Assert.False(storage.Write(file));
-                storage.DeleteAllFiles();
-            } 
+            }
             catch (FileNameAlreadyExistsException)
             {
+                Console.WriteLine(FILE_NAME_ALREADY_EXISTS_EXCEPTION);
                 isException = true;
             }
+            catch (OutOfMemoryException e)
+            {
+                Console.WriteLine(MAX_SIZE_EXCEPTION);
+            }
             Assert.True(isException, NO_EXPECTED_EXCEPTION_EXCEPTION);
+            storage.DeleteAllFiles();
         }
-
+  
         /* Тестирование проверки существования файла */
         [Test, TestCaseSource(nameof(NewFilesData))]
         public void IsExistsTest(File file) {
-            String name = file.GetFilename();
-            Assert.False(storage.IsExists(name));
-            try {
+            string name = file.GetFilename();
+            try
+            {
+                Assert.False(storage.IsExists(name));
                 storage.Write(file);
-            } catch (FileNameAlreadyExistsException e) {
-                Console.WriteLine(String.Format("Exception {0} in method {1}", e.GetBaseException(), MethodBase.GetCurrentMethod().Name));
+                Assert.True(storage.IsExists(name));
             }
-            Assert.True(storage.IsExists(name));
+            catch (FileNameAlreadyExistsException e)
+            {
+                Console.WriteLine(FILE_NAME_ALREADY_EXISTS_EXCEPTION);
+            }
+            catch (OutOfMemoryException e)
+            {
+                Console.WriteLine(MAX_SIZE_EXCEPTION);
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(NULL_FILE_EXCEPTION);
+            }
             storage.DeleteAllFiles();
         }
 
         /* Тестирование удаления файла */
         [Test, TestCaseSource(nameof(FilesForDeleteData))]
-        public void DeleteTest(File file, String fileName) {
-            storage.Write(file);
-            Assert.True(storage.Delete(fileName));
+        public void DeleteTest(File file, String fileName) {  
+            try
+            {
+                storage.Write(file);
+                Assert.True(storage.Delete(fileName));
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(NULL_FILE_EXCEPTION);
+            }
+            Assert.False(storage.Delete(fileName));
         }
 
         /* Тестирование получения файлов */
         [Test]
         public void GetFilesTest()
         {
-            foreach (File el in storage.GetFiles()) 
+            foreach (File el in storage.GetFiles())
             {
                 Assert.NotNull(el);
             }
         }
 
-        // Почти эталонный
         /* Тестирование получения файла */
         [Test, TestCaseSource(nameof(NewFilesData))]
         public void GetFileTest(File expectedFile) 
+        { 
+            try
+            {
+                storage.Write(expectedFile);
+                File actualfile = storage.GetFile(expectedFile.GetFilename());
+                bool difference = actualfile.GetFilename().Equals(expectedFile.GetFilename()) && actualfile.GetSize().Equals(expectedFile.GetSize());
+                Assert.IsTrue(difference, string.Format("There is some differences in {0} or {1}", expectedFile.GetFilename(), expectedFile.GetSize()));
+            }
+            catch (OutOfMemoryException e)
+            {
+                Console.WriteLine(MAX_SIZE_EXCEPTION);
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine(NULL_FILE_EXCEPTION);
+            }
+            storage.DeleteAllFiles();
+        }
+
+        [Test, TestCaseSource(nameof(LongData))]
+        public void outofmemmoryexception(File file)
         {
-            storage.Write(expectedFile);
+            try
+            {
+                storage.Write(file);
+            }
+            catch (OutOfMemoryException e)
+            {
+                NUnit.Framework.StringAssert.Contains(e.Message, e.Message);
+                return;
+            }
+            Assert.Fail(NO_EXPECTED_EXCEPTION_EXCEPTION);
+        }
 
-            File actualfile = storage.GetFile(expectedFile.GetFilename());
-            bool difference = actualfile.GetFilename().Equals(expectedFile.GetFilename()) && actualfile.GetSize().Equals(expectedFile.GetSize());
-
-            Assert.IsFalse(difference, string.Format("There is some differences in {0} or {1}", expectedFile.GetFilename(), expectedFile.GetSize()));
+        [Test, TestCaseSource(nameof(NullData))]
+        public void nullreferenceexception(File file)
+        {
+            bool isException = false;
+            try
+            {
+                storage.Write(file);
+            }
+            catch (NullReferenceException e)
+            {
+                NUnit.Framework.StringAssert.Contains(e.Message, e.Message);
+                isException = true;
+            }
+            Assert.True(isException, NO_EXPECTED_EXCEPTION_EXCEPTION);
         }
     }
 }

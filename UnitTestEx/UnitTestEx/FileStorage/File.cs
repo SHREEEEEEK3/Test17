@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace UnitTestEx
 {
@@ -41,7 +39,12 @@ namespace UnitTestEx
          */
         public string GetFilename()
         {
-            return filename;
+                return filename;
+        }
+
+        public string GetContent()
+        {
+            return content;
         }
     }
 }

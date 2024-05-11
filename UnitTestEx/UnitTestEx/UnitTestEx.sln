@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileStorageTests", "UnitTestProject\FileStorageTests.csproj", "{E71474CA-EC87-418D-AEFA-BE07D33D16CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileStorage", "FileStorage\FileStorage.csproj", "{579D0033-AA7C-4A48-A7D5-014519E8CE97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileStorage", "FileStorage\FileStorage.csproj", "{579D0033-AA7C-4A48-A7D5-014519E8CE97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
